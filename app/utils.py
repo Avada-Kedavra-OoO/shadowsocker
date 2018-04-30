@@ -94,18 +94,18 @@ class User(object):
             f.write(json.dumps(self.basic, indent=4))
 
 
-def get_ignore_ports(ports):
+server = Server()
+
+
+def get_occupied_ports():
     p = []
-    for i in ports:
+    for i in IGNORE_PORTS:
         if isinstance(i, list):
             for port in range(i[0], i[1]):
                 p.append(port)
         else:
             p.append(i)
-    return p
-
-
-server = Server()
+    return set(p + server.ports)
 
 
 def gen_random_string(length=10):
@@ -127,7 +127,7 @@ def gen_port_passwords():
     :return:
     """
     for port in range(max(START_PORT, 0), min(END_PORT, 65535)):
-        if port not in set(get_ignore_ports(IGNORE_PORTS) + server.ports):
+        if port not in get_occupied_ports():
             password = gen_random_string()
             yield (port, password)
 
