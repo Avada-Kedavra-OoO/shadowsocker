@@ -19,3 +19,27 @@ class Port(db.Model):
             id=self.id,
             port=self.port
         )
+
+    def __getitem__(self, item):
+        data = {
+            'id': self.id,
+            'port': self.port,
+            'password': self.password,
+            'created_date': self.created_date.timestamp(),
+            'expired_date': self.expired_date.timestamp(),
+            'valid': self.valid,
+            'note': self.note
+        }
+
+        return data[item]
+
+    def dict(self):
+        return {
+            'id': self.id,
+            'port': self.port,
+            'password': self.password,
+            'created_date': self.created_date.timestamp(),
+            'expired_date': self.expired_date.timestamp(),
+            'valid': self.valid,
+            'note': self.note
+        }
