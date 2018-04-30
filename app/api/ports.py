@@ -4,25 +4,22 @@
 from flask import jsonify, request
 from datetime import datetime, timedelta, timezone
 from settings import TIMEZONE
+from . import api
 from .. import db
 from ..models import Port
-from ..utils import User, server, gen_port_passwords
-from . import api
+from ..utils import \
+    User, \
+    server, \
+    gen_port_passwords, \
+    get_occupied_ports
+
 
 g = gen_port_passwords()
 
 
 @api.route('/ports')
 def get_all_ports():
-    return jsonify(list(map(lambda config: {
-        'id': config.id,
-        'port': config.port,
-        'password': config.password,
-        'created_date': config.created_date.timestamp(),
-        'expired_date': config.expired_date.timestamp(),
-        'valid': config.valid,
-        'note': config.note
-    }, Port.query.all())))
+    return jsonify(list(map(lambda config: config.dict(), Port.query.all())))
 
 
 @api.route('/port', methods=['POST'])
@@ -54,7 +51,7 @@ def add_port():
     else:
         expired_date = created_date
 
-    valid = True if expired_date.timestamp() is not created_date.timestamp() else False
+    valid = True if expired_date.timestamp() > created_date.timestamp() else False
     new_port = Port(
         port=port,
         password=password,
@@ -74,28 +71,41 @@ def add_port():
     user.save()
     server.save()
 
-    return jsonify({
-        'message': 'Success!',
-        'data': {
-            'port': port,
-            'password': password,
-            'created_date': created_date.timestamp(),
-            'expired_date': expired_date.timestamp(),
-            'note': form['note'],
-            'valid': valid
-        }
-    })
+    return jsonify('Success!')
 
 
 @api.route('/port', methods=['PUT'])
 def update_port():
     form = request.form
-    Port.query.filter_by(port=form['id']).first()
+    port = Port.query.filter_by(id=form['id']).first_or_404()
+    occupied_ports = get_occupied_ports()
 
-    return jsonify(form)
+    if 'port' in form and form['port'] not in occupied_ports:
+        port.port = form['port']
+
+    if 'password' in form:
+        port.password = form['password']
+
+    if 'created_date' in form:
+        port.created_date = datetime.fromtimestamp(form['created_date'])
+
+    if 'expired_date' in form:
+        port.expired_date = datetime.fromtimestamp(form['expired_date'])
+
+    if 'valid' in form:
+        port.valid = form['valid']
+
+    if 'note' in form:
+        port.note = form['note']
+
+    db.session.commit()
+    return jsonify('Success!')
 
 
 @api.route('/port', methods=['DELETE'])
 def delete_port():
     form = request.form
-    return jsonify(form)
+    port = Port.query.filter_by(id=form['id']).first_or_404()
+    db.session.delete(port)
+    db.session.commit()
+    return jsonify('Success')
