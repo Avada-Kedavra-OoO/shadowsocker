@@ -4,6 +4,7 @@
 import random
 import json
 import collections
+from subprocess import call
 from settings import \
     SHADOWSCOCKS_CONFIG_PATH, \
     USER_CONFIGS_DIRECTORY_PATH, \
@@ -82,6 +83,12 @@ class User(object):
             'remarks': ''
         }
 
+    @staticmethod
+    def delete(port):
+        call(['rm', '-rf', '{output}/config-{port}.json'.format(
+                output=USER_CONFIGS_DIRECTORY_PATH,
+                port=port)])
+
     def note(self, value):
         self.data['note'] = value
 
@@ -134,3 +141,5 @@ def gen_port_passwords():
     return None
 
 
+def restart_shadowsocks():
+    return call(['ssserver', '-c', '/etc/shadowsocks.json', '-d', 'start'])

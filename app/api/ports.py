@@ -11,10 +11,15 @@ from ..utils import \
     User, \
     server, \
     gen_port_passwords, \
-    get_occupied_ports
-
+    get_occupied_ports, \
+    restart_shadowsocks
 
 g = gen_port_passwords()
+
+
+@api.route('/test', methods=['POST', 'PUT', 'DELETE'])
+def test():
+    return jsonify(request.form)
 
 
 @api.route('/ports')
@@ -61,51 +66,83 @@ def add_port():
         note=form['note']
     )
 
-    db.session.add(new_port)
-    db.session.commit()
     server.add(port, password)
+    server.save()
 
     note = 'Created on {0}, this config will be expired after 30 days on {1}'
     user = User(port, password)
     user.note(note.format(created_date, expired_date))
     user.save()
-    server.save()
 
+    db.session.add(new_port)
+    db.session.commit()
     return jsonify('Success!')
+
+    # restart_status = restart_shadowsocks()
+    # if restart_status is 0:
+    #     return jsonify('Success!')
+    # else:
+    #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
 
 
 @api.route('/port', methods=['PUT'])
 def update_port():
     form = request.form
-    port = Port.query.filter_by(id=form['id']).first_or_404()
+    print('\n\n\n', form, '\n\n\n')
+    port = Port.query.filter_by(id=int(form['id'])).first_or_404()
     occupied_ports = get_occupied_ports()
 
-    if 'port' in form and form['port'] not in occupied_ports:
-        port.port = form['port']
+    if 'port' in form:
+        if form['port'] not in occupied_ports:
+            port.port = form['port']
+        else:
+            return jsonify('Port in use!'), 409
 
     if 'password' in form:
         port.password = form['password']
 
     if 'created_date' in form:
-        port.created_date = datetime.fromtimestamp(form['created_date'])
+        port.created_date = datetime.fromtimestamp(int(float(form['created_date'])))
 
     if 'expired_date' in form:
-        port.expired_date = datetime.fromtimestamp(form['expired_date'])
+        port.expired_date = datetime.fromtimestamp(int(float(form['expired_date'])))
 
     if 'valid' in form:
-        port.valid = form['valid']
+        port.valid = True if form['valid'] == 'true' else False
 
     if 'note' in form:
         port.note = form['note']
 
+    if 'port' in form or 'password' in form:
+        User(port.port, port.password).save()
+        server.update(port.port, port.password)
+        server.save()
+
     db.session.commit()
     return jsonify('Success!')
+
+    # restart_status = restart_shadowsocks()
+    # if restart_status is 0:
+    #     return jsonify('Success!')
+    # else:
+    #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
 
 
 @api.route('/port', methods=['DELETE'])
 def delete_port():
     form = request.form
     port = Port.query.filter_by(id=form['id']).first_or_404()
+
+    User.delete(port.port)
+    server.delete(port.port)
+    server.save()
+
     db.session.delete(port)
     db.session.commit()
-    return jsonify('Success')
+    return jsonify('Success!')
+
+    # restart_status = restart_shadowsocks()
+    # if restart_status is 0:
+    #     return jsonify('Success!')
+    # else:
+    #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
