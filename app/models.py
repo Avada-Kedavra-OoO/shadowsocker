@@ -38,8 +38,9 @@ class Port(db.Model):
             'id': self.id,
             'port': self.port,
             'password': self.password,
-            'created_date': self.created_date.timestamp(),
-            'expired_date': self.expired_date.timestamp(),
+            'created_date': int(self.created_date.timestamp()),
+            'expired_date': int(self.expired_date.timestamp()),
             'valid': self.valid,
-            'note': self.note
+            'note': self.note,
+            'file': '/files/config-{port}.json'.format(port=self.port)
         }
