@@ -11,6 +11,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # 服务器的 IP 地址
 IP = '127.0.0.1'
 
+# 管理员的账号密码
+USERNAME = 'admin'
+PASSWORD = '123456789'
+
 # 服务器分配端口的起始值
 START_PORT = 10000
 
@@ -26,10 +30,6 @@ IGNORE_PORTS = [80, 443, 8080, [10000, 10010]]
 # 默认为东8 区
 TIMEZONE = 8
 
-# 管理员的账号密码
-USERNAME = 'admin'
-PASSWORD = '123456789'
-
 """
     Shadowsocks 文件设置
 """
@@ -40,3 +40,5 @@ SHADOWSCOCKS_CONFIG_PATH = os.path.abspath(os.path.join(basedir, 'shadowsocks.js
 # 服务器生成的用户配置文件的文件夹的路径
 USER_CONFIGS_DIRECTORY_PATH = os.path.abspath(os.path.join(basedir, 'output'))
 
+# Shadowsocks 重启命令
+SHADOWSCOCKS_RESTART = 'ssserver -c /etc/shadowsocks.json -d start'
