@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import random
 import json
 import collections
 from subprocess import call
 from settings import \
     SHADOWSCOCKS_CONFIG_PATH, \
     USER_CONFIGS_DIRECTORY_PATH, \
-    START_PORT, \
-    END_PORT, \
-    IGNORE_PORTS, \
     IP
 
 
@@ -35,11 +31,13 @@ class Server(object):
             self.ports.append(port)
 
     def update(self, port, password):
-        if port in self.ports:
-            self.passwords[str(port)] = password
+        self.passwords[str(port)] = password
 
     def delete(self, port):
-        del self.passwords[str(port)]
+        try:
+            del self.passwords[str(port)]
+        except KeyError:
+            pass
 
     def save(self):
         self.conf['port_password'] = self.passwords
@@ -102,44 +100,3 @@ class User(object):
 
 
 server = Server()
-
-
-def get_occupied_ports():
-    p = []
-    for i in IGNORE_PORTS:
-        if isinstance(i, list):
-            for port in range(i[0], i[1]):
-                p.append(port)
-        else:
-            p.append(i)
-    return set(p + server.ports)
-
-
-def gen_random_string(length=10):
-    """
-    生成随机密码
-
-    :param length:   密码长度，默认为 10 位
-    :return:                返回新的密码
-    """
-    return ''.join(
-        random.sample('abcdefghijklmnopqrstuvwxyz1234567890',
-                      length))
-
-
-def gen_port_passwords():
-    """
-
-    :param ports:    已占用的端口的 list
-    :return:
-    """
-    for port in range(max(START_PORT, 0), min(END_PORT, 65535)):
-        if port not in get_occupied_ports():
-            password = gen_random_string()
-            yield (port, password)
-
-    return None
-
-
-def restart_shadowsocks():
-    return call(['ssserver', '-c', '/etc/shadowsocks.json', '-d', 'start'])
