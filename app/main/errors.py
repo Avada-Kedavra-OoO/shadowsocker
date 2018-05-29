@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import render_template, jsonify
+import traceback
+from flask import render_template, jsonify, current_app, request
 from . import main
 
 
@@ -16,3 +17,14 @@ def internal_server_error(e):
         'status': 500,
         'error': dict(e)
     })
+
+
+@main.app_errorhandler(Exception)
+def api_error_handler(e):
+    current_app.logger.error('--------- Error Happened in Error Handler --------')
+    current_app.logger.error(e)
+    current_app.logger.error(traceback.print_exc())
+    if request.method is not 'GET':
+        current_app.logger.error(request.form)
+    current_app.logger.error('--------------------------------------------------')
+    raise e
