@@ -8,8 +8,13 @@
 
 """
 
-from flask import Blueprint
+from flask import Blueprint, jsonify
 
 api = Blueprint('api', __name__)
 
 from . import ports
+
+
+@api.route('/')
+def hello():
+    return jsonify('Hello')

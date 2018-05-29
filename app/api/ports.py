@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, request
-from datetime import datetime, timedelta, timezone
-from settings import TIMEZONE
+from flask import jsonify, request, current_app, session
+from datetime import datetime, timedelta
 from . import api
 from .. import db
 from ..models import Port
-from ..utils import \
+from ..utils import now, \
     User, \
     server, \
     gen_port_passwords, \
     get_occupied_ports, \
     restart_shadowsocks
+from ..utils.scheduler import filter_invalid_ports
 
-g = gen_port_passwords()
 
-
-@api.route('/test', methods=['POST', 'PUT', 'DELETE'])
+@api.route('/test', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def test():
-    return jsonify(request.form)
+    print(type(session), session, dict(session))
+    result = filter_invalid_ports()
+    return jsonify(result)
 
 
 @api.route('/ports')
@@ -30,12 +30,11 @@ def get_all_ports():
 @api.route('/port', methods=['POST'])
 def add_port():
     form = request.form
-    utc_date = datetime.utcnow().replace(tzinfo=timezone.utc)
-    created_date = utc_date.astimezone(timezone(timedelta(hours=TIMEZONE)))
+    created_date = now()
 
     if form['auto_create']:
         try:
-            port, password = next(g)
+            port, password = gen_port_passwords()
         except StopIteration:
             return jsonify('Max Port!'), 500
     else:
@@ -44,11 +43,11 @@ def add_port():
     # expired_date 是 port 到期的日期，精确到天数，不是秒
     # 值为 0, 1, 2, 3 可根据自己需求添加做判断
     # 0 是自己选择的日期，所以有额外的字段 expired_date_unix 来保存到期日期的时间戳
-    # 1 是 1 天，2 是一个月，3 是1 年
+    # 1 是 3 天，2 是一个月，3 是1 年
     if form['expired_date'] == '0':
         expired_date = datetime.fromtimestamp(form['expired_date_unix'])
     elif form['expired_date'] == '1':
-        expired_date = created_date + timedelta(days=1)
+        expired_date = created_date + timedelta(days=3)
     elif form['expired_date'] == '2':
         expired_date = datetime(created_date.year, created_date.month + 1, created_date.day)
     elif form['expired_date'] == '3':
@@ -78,8 +77,8 @@ def add_port():
     db.session.commit()
     return jsonify('Success!')
 
-    # restart_status = restart_shadowsocks()
-    # if restart_status is 0:
+    # status = restart_shadowsocks()
+    # if status is 0:
     #     return jsonify('Success!')
     # else:
     #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
@@ -88,7 +87,6 @@ def add_port():
 @api.route('/port', methods=['PUT'])
 def update_port():
     form = request.form
-    print('\n\n\n', form, '\n\n\n')
     port = Port.query.filter_by(id=int(form['id'])).first_or_404()
     occupied_ports = get_occupied_ports()
 
@@ -113,16 +111,20 @@ def update_port():
     if 'note' in form:
         port.note = form['note']
 
-    if 'port' in form or 'password' in form:
-        User(port.port, port.password).save()
-        server.update(port.port, port.password)
+    if port.valid:
+        if 'port' in form or 'password' in form:
+            User(port.port, port.password).save()
+            server.update(port.port, port.password)
+            server.save()
+    else:
+        server.delete(port.port)
         server.save()
 
     db.session.commit()
     return jsonify('Success!')
 
-    # restart_status = restart_shadowsocks()
-    # if restart_status is 0:
+    # status = restart_shadowsocks()
+    # if status is 0:
     #     return jsonify('Success!')
     # else:
     #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
@@ -141,8 +143,8 @@ def delete_port():
     db.session.commit()
     return jsonify('Success!')
 
-    # restart_status = restart_shadowsocks()
-    # if restart_status is 0:
+    # status = restart_shadowsocks()
+    # if status is 0:
     #     return jsonify('Success!')
     # else:
     #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
