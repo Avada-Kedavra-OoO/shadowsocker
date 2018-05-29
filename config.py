@@ -12,6 +12,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_RECORD_QUERIES = True
 
+    # 开启 Flask-APScheduler
+    SCHEDULER_API_ENABLED = True
+
     @staticmethod
     def init_app(app):
         pass
