@@ -1,4 +1,6 @@
 *.py[cod]
+logs/
+migrations/
 output/
 
 # C extensions
