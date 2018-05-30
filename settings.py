@@ -11,9 +11,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # 服务器的 IP 地址
 IP = '127.0.0.1'
 
-# 管理员的账号密码
+# 管理员的初始账号密码
 USERNAME = 'admin'
 PASSWORD = '123456789'
+EMAIL = 'youremail@example.com'
 
 # 服务器分配端口的起始值
 START_PORT = 10000
