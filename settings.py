@@ -31,6 +31,13 @@ IGNORE_PORTS = [80, 443, 8080, [10000, 10010]]
 TIMEZONE = 8
 
 """
+    Email 设置
+"""
+MAIL_SERVER = ''
+MAIL_PORT = 587
+MAIL_USE_TLS = True
+
+"""
     Shadowsocks 文件设置
 """
 # 服务端的 Shadowsocks 配置文件的路径
