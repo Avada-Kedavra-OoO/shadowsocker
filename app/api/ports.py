@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from . import api
 from .. import db
 from ..models import Port
+from ..utils.decorators import admin_required
 from ..utils import now, \
     User, \
     server, \
@@ -16,6 +17,7 @@ from ..utils.scheduler import filter_invalid_ports
 
 
 @api.route('/test', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@admin_required
 def test():
     print(type(session), session, dict(session))
     result = filter_invalid_ports()
@@ -23,11 +25,13 @@ def test():
 
 
 @api.route('/ports')
+@admin_required
 def get_all_ports():
     return jsonify(list(map(lambda config: config.dict(), Port.query.all())))
 
 
 @api.route('/port', methods=['POST'])
+@admin_required
 def add_port():
     form = request.form
     created_date = now()
@@ -85,6 +89,7 @@ def add_port():
 
 
 @api.route('/port', methods=['PUT'])
+@admin_required
 def update_port():
     form = request.form
     port = Port.query.filter_by(id=int(form['id'])).first_or_404()
@@ -131,6 +136,7 @@ def update_port():
 
 
 @api.route('/port', methods=['DELETE'])
+@admin_required
 def delete_port():
     form = request.form
     port = Port.query.filter_by(id=form['id']).first_or_404()

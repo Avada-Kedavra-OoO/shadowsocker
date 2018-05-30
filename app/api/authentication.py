@@ -7,14 +7,15 @@ from . import api
 from .. import db
 from ..models import User
 from ..email import send_mail
-from settings import USERNAME, PASSWORD
 
 
 @api.route('/login', methods=['POST'])
 def login():
     form = request.form
-    if form['username'] == USERNAME and form['password'] == PASSWORD:
-        login_user()
+    user = User.query.filter_by(email=form['email']).first()
+    if user is not None and user.verify_password(form['password']):
+        remember = True if form['remember'] == 'true' else False
+        login_user(user, remember)
         return jsonify('Authenticated')
     else:
         return jsonify('Unauthenticated'), 401
