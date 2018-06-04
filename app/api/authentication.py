@@ -12,7 +12,7 @@ from ..email import send_mail
 @api.route('/login', methods=['POST'])
 def login():
     form = request.form
-    user = User.query.filter_by(email=form['email']).first()
+    user = User.query.filter_by(username=form['username']).first()
     if user is not None and user.verify_password(form['password']):
         remember = True if form['remember'] == 'true' else False
         login_user(user, remember)
