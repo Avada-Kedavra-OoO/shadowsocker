@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import jsonify, request, current_app, session
+from flask import jsonify, request
 from datetime import datetime, timedelta
 from . import api
 from .. import db
@@ -19,7 +19,6 @@ from ..utils.scheduler import filter_invalid_ports
 @api.route('/test', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @admin_required
 def test():
-    print(type(session), session, dict(session))
     result = filter_invalid_ports()
     return jsonify(result)
 
@@ -36,7 +35,7 @@ def add_port():
     form = request.form
     created_date = now()
 
-    if form['auto_create']:
+    if form['auto_create'] == 'true':
         try:
             port, password = gen_port_passwords()
         except StopIteration:
@@ -79,13 +78,12 @@ def add_port():
 
     db.session.add(new_port)
     db.session.commit()
-    return jsonify('Success!')
 
-    # status = restart_shadowsocks()
-    # if status is 0:
-    #     return jsonify('Success!')
-    # else:
-    #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
+    status = restart_shadowsocks()
+    if status is 0:
+        return jsonify('Success!')
+    else:
+        return jsonify('Shadowsocks restart error! Please restart manually!'), 500
 
 
 @api.route('/port', methods=['PUT'])
@@ -126,13 +124,12 @@ def update_port():
         server.save()
 
     db.session.commit()
-    return jsonify('Success!')
 
-    # status = restart_shadowsocks()
-    # if status is 0:
-    #     return jsonify('Success!')
-    # else:
-    #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
+    status = restart_shadowsocks()
+    if status is 0:
+        return jsonify('Success!')
+    else:
+        return jsonify('Shadowsocks restart error! Please restart manually!'), 500
 
 
 @api.route('/port', methods=['DELETE'])
@@ -147,10 +144,9 @@ def delete_port():
 
     db.session.delete(port)
     db.session.commit()
-    return jsonify('Success!')
 
-    # status = restart_shadowsocks()
-    # if status is 0:
-    #     return jsonify('Success!')
-    # else:
-    #     return jsonify('Shadowsocks restart error! Please restart manually!'), 500
+    status = restart_shadowsocks()
+    if status is 0:
+        return jsonify('Success!')
+    else:
+        return jsonify('Shadowsocks restart error! Please restart manually!'), 500
