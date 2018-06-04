@@ -1,25 +1,7 @@
 {
-    "fast_open": false,
     "timeout": 300,
-    "port_password": {
-        "10000": "36hpf4kcig",
-        "10001": "dgxp59vq1k",
-        "10002": "2lumkoj91v",
-        "10003": "bxrf640gz5",
-        "10004": "fpcr8em4sy",
-        "10005": "pgw6btd25a",
-        "10006": "jrc2dxya71",
-        "10007": "i9pk0vg4yd",
-        "10008": "q0u8ylx5n6",
-        "10010": "q32nhmpr9c",
-        "10011": "5jikdef37w",
-        "10012": "kdjsbwacxz",
-        "10013": "jyqdvk8bru",
-        "10014": "ts7pmkn8wc",
-        "10015": "nmk6tpw5h4",
-        "10016": "yr9hzc1uso",
-        "10017": "0qrw3xmhln"
-    },
+    "server": "0.0.0.0",
+    "port_password": {},
     "method": "aes-256-cfb",
-    "server": "0.0.0.0"
+    "fast_open": false
 }
