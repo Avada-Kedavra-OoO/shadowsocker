@@ -20,4 +20,4 @@ from flask import Blueprint
 main = Blueprint('main', __name__)
 
 # 定义的路由需要在该脚本的末尾导入，避免循环导入依赖
-from . import errors, views
+from . import views

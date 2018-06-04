@@ -12,7 +12,7 @@ from flask import Blueprint, jsonify
 
 api = Blueprint('api', __name__)
 
-from . import ports
+from . import ports, authentication, errors
 
 
 @api.route('/')
